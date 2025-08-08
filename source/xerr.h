@@ -15,9 +15,6 @@ struct xerr
     // adding additional states below these two
     };
 
-    constexpr               xerr            (void)                          noexcept = default;
-    template< typename T >
-    constexpr               xerr            (const T& E)                    noexcept : m_pMessage(E.m_pMessage){}
     constexpr               operator bool   (void)                  const   noexcept { return !!m_pMessage; }
     inline void             clear           (void)                          noexcept { m_pMessage = nullptr; }
     constexpr std::uint32_t getStateUID     (void)                  const   noexcept { return m_pMessage ? reinterpret_cast<const std::uint32_t&>(m_pMessage[-5]) : 0; }
