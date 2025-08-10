@@ -18,7 +18,7 @@ minimalist design, lockless chaining, and RAII cleanup. No dependencies, just pu
 - **Hints**: You can create hints in your errors to help the user solve their issues.
 - **MIT License**: Free to hack.
 - **Header only**: Simple to integrate in your projects
-- **Documentation**: documentation!
+- **Documentation**: [documentation!](https://github.com/LIONant-depot/xerr/blob/main/documentation/index.md)
 
 ## Quick Start
 Grab [xerr on GitHub](https://github.com/LIONant-depot/xerr), include `source/xerr.h`, and go!
