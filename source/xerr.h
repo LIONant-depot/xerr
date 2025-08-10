@@ -78,9 +78,9 @@ struct xerr
     inline                  std::string_view    getMessage                  (void)                              const   noexcept;
     inline                  std::string_view    getHint                     (void)                              const   noexcept;
     template< typename T_CALLBACK> 
-    inline static           void                ForEachInChain              (T_CALLBACK&& Callback )                    noexcept requires std::invocable<T_CALLBACK, xerr>;
+    inline                  void                ForEachInChain              (T_CALLBACK&& Callback )            const   noexcept requires std::invocable<T_CALLBACK, xerr>;
     template< typename T_CALLBACK>
-    inline static           void                ForEachInChainBackwards     (T_CALLBACK&& Callback)                     noexcept requires std::invocable<T_CALLBACK, xerr>;
+    inline                  void                ForEachInChainBackwards     (T_CALLBACK&& Callback)             const   noexcept requires std::invocable<T_CALLBACK, xerr>;
 
     template< typename T_STATE_ENUM >
     constexpr               T_STATE_ENUM        getState                    (void)                              const   noexcept requires (std::is_enum_v<T_STATE_ENUM>);

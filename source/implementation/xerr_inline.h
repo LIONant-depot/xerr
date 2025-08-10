@@ -304,19 +304,37 @@ std::string_view xerr::getHint(void) const noexcept
 //------------------------------------------------------------------------------------
 
 template< typename T_CALLBACK> inline
-void xerr::ForEachInChain(T_CALLBACK&& Callback) noexcept requires std::invocable<T_CALLBACK, xerr>
+void xerr::ForEachInChain(T_CALLBACK&& Callback) const noexcept requires std::invocable<T_CALLBACK, xerr>
 {
-    for (auto i = xerr_details::g_iCurChain; i != -1; i = m_ChainPool.m_Pool[i].m_iNext)
-        Callback(xerr{ m_ChainPool.m_Pool[i].m_pError });
+    if( m_pMessage == nullptr ) return;
+
+    if(xerr_details::g_iCurChain == -1)
+    {
+        Callback(*this);
+    }
+    else
+    {
+        for (auto i = xerr_details::g_iCurTail; i != -1; i = m_ChainPool.m_Pool[i].m_iPrev)
+            Callback(xerr{ m_ChainPool.m_Pool[i].m_pError });
+    }
 }
 
 //------------------------------------------------------------------------------------
 
 template< typename T_CALLBACK> inline
-void xerr::ForEachInChainBackwards(T_CALLBACK&& Callback) noexcept requires std::invocable<T_CALLBACK, xerr>
+void xerr::ForEachInChainBackwards(T_CALLBACK&& Callback) const noexcept requires std::invocable<T_CALLBACK, xerr>
 {
-    for (auto i = xerr_details::g_iCurTail; i != -1; i = m_ChainPool.m_Pool[i].m_iPrev)
-        Callback(xerr{ m_ChainPool.m_Pool[i].m_pError });
+    if (m_pMessage == nullptr) return;
+
+    if (xerr_details::g_iCurChain == -1)
+    {
+        Callback(*this);
+    }
+    else
+    {
+        for (auto i = xerr_details::g_iCurChain; i != -1; i = m_ChainPool.m_Pool[i].m_iNext)
+            Callback(xerr{ m_ChainPool.m_Pool[i].m_pError });
+    }
 }
 
 //------------------------------------------------------------------------------------
