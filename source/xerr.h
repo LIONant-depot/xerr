@@ -91,11 +91,11 @@ struct xerr
     template <auto T_STATE_V, xerr_details::string_literal T_STR_V>
     constexpr static        xerr                create                      (const xerr PrevError)                      noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
 
-    template <xerr_details::string_literal T_STR_V>
-    constexpr static        xerr                create_f                    (void)                                      noexcept;
+    template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V>
+    constexpr static        xerr                create_f                    (void)                                      noexcept requires (std::is_enum_v<T_STATE_ENUM>);
 
-    template <xerr_details::string_literal T_STR_V>
-    constexpr static        xerr                create_f                    (const xerr PrevError)                      noexcept;
+    template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V>
+    constexpr static        xerr                create_f                    (const xerr PrevError)                      noexcept requires (std::is_enum_v<T_STATE_ENUM>);
 
 
     const char*                                 m_pMessage      = nullptr;

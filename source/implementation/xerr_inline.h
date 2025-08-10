@@ -360,16 +360,16 @@ template <auto T_STATE_V, xerr_details::string_literal T_STR_V> constexpr
 
 //------------------------------------------------------------------------------------
 
-template <xerr_details::string_literal T_STR_V> constexpr
-xerr xerr::create_f(void) noexcept
+template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V> constexpr
+xerr xerr::create_f(void) noexcept requires (std::is_enum_v<T_STATE_ENUM>)
 {
-    return create<default_states::FAILURE, T_STR_V>();
+    return create<T_STATE_ENUM::FAILURE, T_STR_V>();
 }
 
 //------------------------------------------------------------------------------------
 
-template <xerr_details::string_literal T_STR_V> constexpr
-xerr xerr::create_f(const xerr PrevError) noexcept
+template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V> constexpr
+xerr xerr::create_f(const xerr PrevError) noexcept requires (std::is_enum_v<T_STATE_ENUM>)
 {
-    return create<default_states::FAILURE, T_STR_V>(PrevError);
+    return create<T_STATE_ENUM::FAILURE, T_STR_V>(PrevError);
 }
