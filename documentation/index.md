@@ -19,18 +19,28 @@ Clone [xerr on GitHub](https://github.com/LIONant-depot/xerr), include `source/x
 ```cpp
 #include "xerr.h"
 
-enum class Error : std::uint8_t { OK, FAILURE, NOT_FOUND };
+enum class Error : std::uint8_t { OK, FAILURE, NOT_FOUND, INVALID };
 
-xerr open_file(const char* path) {
-    if (!path) return xerr::create<Error::NOT_FOUND, "File not found|Check path">();
+xerr low_level() {
+    return xerr::create<Error::NOT_FOUND, "File not found|Check path">();
+}
+
+xerr high_level() {
+    xerr err;
+    xerr::cleanup s(err, [] { printf("Cleaning up\n"); });
+    if ((err = low_level())) return xerr::create<Error::INVALID, "Processing failed|Retry operation">(err);
     return {};
 }
 
 int main() {
-    if (auto err = open_file(""); err) {
-        printf("Error: %s, Hint: %s\n", err.getMessage().data(), err.getHint().data());
+    if (auto err = high_level(); err) {
+        xerr::ForEachInChain([](const xerr& e) {
+            printf("Error: %s, Hint: %s\n", e.getMessage().data(), e.getHint().data());
+        });
+        // Outputs:
+        // Error: File not found, Hint: Check path
+        // Error: Processing failed, Hint: Retry operation
     }
-    return 0;
 }
 ```
 

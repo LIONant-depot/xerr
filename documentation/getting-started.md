@@ -4,7 +4,7 @@ This guide covers basic usage of **xerr**, a zero-overhead, type-safe C++ error 
 
 ## Setup
 1. Clone [xerr on GitHub](https://github.com/LIONant-depot/xerr).
-2. Include `source/xerr.h` (includes `xerr_inline.h`):
+2. Include `source/xerr.h` (includes `implementation/xerr_inline.h`):
    ```cpp
    #include "xerr.h"
    ```
@@ -43,7 +43,19 @@ auto err = open_file("");
 assert(err.getState<FileError>() == FileError::NOT_FOUND);
 ```
 
+## RAII Cleanup
+Use `xerr::cleanup` for resource management:
+```cpp
+xerr process_file(const char* path) {
+    FILE* fp = fopen(path, "r");
+    xerr err;
+    xerr::cleanup s(err, [&fp] { if (fp) fclose(fp); });
+    if ((err = open_file(path))) return err;
+    return {};
+}
+```
+
 ## Next Steps
-- Explore chaining and cleanup in [Advanced Usage](advanced-usage.md).
+- Explore chaining and debugging in [Advanced Usage](advanced-usage.md).
 - See full API in [API Reference](api-reference.md).
 - Learn why xerr is fastest in [Performance](performance.md).

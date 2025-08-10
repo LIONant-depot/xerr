@@ -1,18 +1,25 @@
 # Advanced Usage of xerr
 
-This guide covers **xerr**’s advanced features: error chaining, RAII cleanup, debugging, and custom enums. For basics, see [Getting Started](getting-started.md).
+This guide covers **xerr**’s advanced features: multi-level error chaining, RAII cleanup, debugging, and custom enums. For basics, see [Getting Started](getting-started.md).
 
-## Error Chaining
-Chain errors to track causes:
+## Multi-Level Error Chaining
+Chain errors across multiple levels to track causes:
 ```cpp
-enum class Error : std::uint8_t { OK, FAILURE, NOT_FOUND, INVALID };
+enum class Error : std::uint8_t { OK, FAILURE, NOT_FOUND, IO_ERROR, INVALID };
 
 xerr low_level() {
     return xerr::create<Error::NOT_FOUND, "File not found|Check path">();
 }
 
-xerr high_level() {
+xerr mid_level() {
     if (auto err = low_level(); err) {
+        return xerr::create<Error::IO_ERROR, "IO operation failed|Check device">(err);
+    }
+    return {};
+}
+
+xerr high_level() {
+    if (auto err = mid_level(); err) {
         return xerr::create<Error::INVALID, "Processing failed|Retry operation">(err);
     }
     return {};
@@ -25,6 +32,7 @@ int main() {
         });
         // Outputs:
         // Error: File not found, Hint: Check path
+        // Error: IO operation failed, Hint: Check device
         // Error: Processing failed, Hint: Retry operation
     }
 }
@@ -39,7 +47,7 @@ xerr process_file(const char* path) {
     FILE* fp = fopen(path, "r");
     xerr err;
     xerr::cleanup s(err, [&fp] { if (fp) fclose(fp); });
-    if ((err = open_file(path))) return err;
+    if ((err = high_level())) return err;
     return {};
 }
 ```
@@ -53,13 +61,15 @@ void log_error(const char* func, std::uint8_t state, const char* msg) {
 
 int main() {
     xerr::m_pCallback = log_error;
-    if (auto err = open_file(""); err) {
-        // Logs: Error in main: state=2, msg=File not found|Check path, hint=Check path
+    if (auto err = high_level(); err) {
+        // Logs for each error in chain, e.g.:
+        // Error in low_level: state=2, msg=File not found|Check path, hint=Check path
+        // ...
     }
 }
 ```
 
-**Note**: Callbacks should take `const xerr&` to ensure safety.
+**Note**: Callbacks should take `const xerr&` for safety, though any callable is allowed.
 
 ## Custom Enums
 Extend `default_states`:
