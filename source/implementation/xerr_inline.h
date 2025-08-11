@@ -276,14 +276,37 @@ bool xerr::hasChain(void) const noexcept
 //------------------------------------------------------------------------------------
 
 inline
-std::string_view xerr::getMessage(void) const noexcept
+std::string_view xerr::getMessageFromString(const char* pMessage) noexcept
 {
-    if (m_pMessage == nullptr) return {};
+    if (pMessage == nullptr) return {};
 
     int i = 0;
-    while (m_pMessage[i] && m_pMessage[i] != '|') i++;
+    while (pMessage[i] && pMessage[i] != '|') i++;
 
-    return { m_pMessage, m_pMessage + i };
+    return { pMessage, pMessage + i };
+}
+
+//------------------------------------------------------------------------------------
+
+inline
+std::string_view xerr::getMessage(void) const noexcept
+{
+    return getMessageFromString(m_pMessage);
+}
+
+//------------------------------------------------------------------------------------
+
+inline
+std::string_view xerr::getHintFromString(const char* pMessage) noexcept
+{
+    if (pMessage == nullptr) return {};
+    int iStart = 0;
+    while (pMessage[iStart] && pMessage[iStart] != '|') iStart++;
+    if (pMessage[iStart] != '|') return {};
+    ++iStart;
+    int iEnd = iStart + 1;
+    while (pMessage[iEnd]) iEnd++;
+    return { pMessage + iStart, pMessage + iEnd };
 }
 
 //------------------------------------------------------------------------------------
@@ -291,14 +314,7 @@ std::string_view xerr::getMessage(void) const noexcept
 inline
 std::string_view xerr::getHint(void) const noexcept
 {
-    if (m_pMessage == nullptr) return {};
-    int iStart = 0;
-    while (m_pMessage[iStart] && m_pMessage[iStart] != '|') iStart++;
-    if (m_pMessage[iStart] != '|') return {};
-    ++iStart;
-    int iEnd = iStart + 1;
-    while (m_pMessage[iEnd]) iEnd++;
-    return { m_pMessage + iStart, m_pMessage + iEnd };
+    return getHintFromString(m_pMessage);
 }
 
 //------------------------------------------------------------------------------------
@@ -391,3 +407,12 @@ xerr xerr::create_f(const xerr PrevError) noexcept requires (std::is_enum_v<T_ST
 {
     return create<T_STATE_ENUM::FAILURE, T_STR_V>(PrevError);
 }
+
+//------------------------------------------------------------------------------------
+
+template <auto T_STATE_V> constexpr
+void xerr::LogMessage(std::string_view Message) noexcept requires (std::is_enum_v<decltype(T_STATE_V)>)
+{
+    if (m_pCallback) m_pCallback(xerr_details::value_type_name_v<T_STATE_V>.data(), static_cast<std::uint8_t>(T_STATE_V), Message );
+}
+

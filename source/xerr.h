@@ -25,7 +25,7 @@ namespace xerr_details
     {
         struct node
         {
-            char*        m_pError;  // Store XErr directly
+            const char*  m_pError;  // Store XErr directly
             std::int16_t m_iNext;   // Index to next node (-1 for end)
             std::int16_t m_iPrev;   // Index to previous node (-1 for end)
         };
@@ -46,7 +46,7 @@ namespace xerr_details
 struct xerr
 {
     // Debugging callback for logging and special handling
-    using fn_error_callback = void(const char* pEnumValue, std::uint8_t State, const char* Message);
+    using fn_error_callback = void(const char* pEnumValue, std::uint8_t State, std::string_view Message);
 
     // Handy object for cleaning up scopes that have errors
     template< typename T_CALLBACK> struct cleanup
@@ -77,6 +77,8 @@ struct xerr
     constexpr               bool                hasChain                    (void)                              const   noexcept;
     inline                  std::string_view    getMessage                  (void)                              const   noexcept;
     inline                  std::string_view    getHint                     (void)                              const   noexcept;
+    inline static           std::string_view    getMessageFromString        (const char* pMessage)                      noexcept;
+    inline static           std::string_view    getHintFromString           (const char* pMessage)                      noexcept;
     template< typename T_CALLBACK> 
     inline                  void                ForEachInChain              (T_CALLBACK&& Callback )            const   noexcept requires std::invocable<T_CALLBACK, xerr>;
     template< typename T_CALLBACK>
@@ -97,6 +99,8 @@ struct xerr
     template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V>
     constexpr static        xerr                create_f                    (const xerr PrevError)                      noexcept requires (std::is_enum_v<T_STATE_ENUM>);
 
+    template <auto T_STATE_V>
+    constexpr static        void                LogMessage                  ( std::string_view Message )                noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
 
     const char*                                 m_pMessage      = nullptr;
 
