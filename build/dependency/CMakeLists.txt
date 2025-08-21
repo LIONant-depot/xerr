@@ -5,7 +5,7 @@ if(NOT TARGET xerr)
     add_library(xerr INTERFACE)
    
     #set the root for this project
-    set(ROOT "../../dependencies/xbitmap")
+    set(ROOT "../../dependencies/xerr")
 
     # path to xerr for the include files
     set(XERR_INCLUDE_LIST "${ROOT}"
