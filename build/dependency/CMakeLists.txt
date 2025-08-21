@@ -1,25 +1,27 @@
-# The library
 cmake_minimum_required(VERSION 3.10)
+cmake_policy(SET CMP0076 NEW)
 
-# Define as an interface library only if not already defined
+# Debug paths
+message("xerr CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message("xerr Source file: ${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h")
+    message(STATUS "xerr.h found at ${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h")
+else()
+    message(WARNING "xerr.h NOT found at ${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h")
+endif()
+
+# Define xerr as an interface library
 if(NOT TARGET xerr)
-  add_library(xerr INTERFACE)
-  target_include_directories(xerr INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+    add_library(xerr INTERFACE)
+    target_include_directories(xerr INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 
-  # Define file list for source_group (adjust paths based on actual xerr files)
-  set(XERR_FILES_LIST
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../README.md"
-    )  
+    # Define file list
+    set(XERR_FILES_LIST "${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h"
+                        "${CMAKE_CURRENT_SOURCE_DIR}/../../readme.md"
+    )
 
-  # Add sources to the parent target (optional, only if xerr provides compilable files)
-  # target_sources(${TARGET_PROJECT} PRIVATE ${XERR_FILES_LIST})
-  # Define component grouping info
-  set(XERR_GROUP "dependencies/xcore/xerr" PARENT_SCOPE)
-  set(XERR_FILES ${XERR_FILES_LIST} PARENT_SCOPE)
-  
-  # Append to COMPONENT_REGISTRY
-  list(APPEND COMPONENT_REGISTRY "XERR")
-  set(COMPONENT_REGISTRY ${COMPONENT_REGISTRY} PARENT_SCOPE)    
-
+    # Set global properties
+    set_property(GLOBAL PROPERTY XERR_GROUP "dependencies/xcore/xerr")
+    set_property(GLOBAL PROPERTY XERR_FILES "${XERR_FILES_LIST}")
+    set_property(GLOBAL APPEND PROPERTY COMPONENT_REGISTRY "XERR")
 endif()
