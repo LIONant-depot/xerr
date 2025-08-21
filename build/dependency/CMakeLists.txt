@@ -8,7 +8,8 @@ if(NOT TARGET xerr)
 
   # Define file list for source_group (adjust paths based on actual xerr files)
   set(XERR_FILES_LIST
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h" # Adjust if xerr.h is elsewhere
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../README.md"
     )  
 
   # Add sources to the parent target (optional, only if xerr provides compilable files)
