@@ -3,16 +3,17 @@ cmake_minimum_required(VERSION 3.10)
 # Define xerr as an interface library
 if(NOT TARGET xerr)
     add_library(xerr INTERFACE)
+   
+    #set the root for this project
+    set(ROOT "../../dependencies/xbitmap")
 
     # path to xerr for the include files
-    set(XERR_INCLUDE_LIST "${CMAKE_CURRENT_SOURCE_DIR}/../.."
+    set(XERR_INCLUDE_LIST "${ROOT}"
     )
-
-    # target_include_directories(xerr INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
-
+    
     # Define file list
-    set(XERR_FILES_LIST "${CMAKE_CURRENT_SOURCE_DIR}/../../source/xerr.h"
-                        "${CMAKE_CURRENT_SOURCE_DIR}/../../readme.md"
+    set(XERR_FILES_LIST "${ROOT}/source/xerr.h"
+                        "${ROOT}/readme.md"
     )
 
     # Set global properties
