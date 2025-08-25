@@ -380,6 +380,10 @@ template <auto T_STATE_V, xerr_details::string_literal T_STR_V> constexpr
 {
     static_assert(sizeof(T_STATE_V) == 1);
 
+    // If there is nothing to chain with then just do the regular thing...
+    if (PrevError.m_pMessage == nullptr ) 
+        return xerr::create<T_STATE_V, T_STR_V>();
+
     if (xerr_details::g_iCurChain == -1)
     {
         xerr_details::CreateEntry().m_pError = PrevError.m_pMessage;
