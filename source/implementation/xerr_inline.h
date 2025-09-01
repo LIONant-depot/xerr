@@ -1,3 +1,6 @@
+
+#include <cassert>
+
 namespace xerr_details
 {
     // Simple constexpr hash function for strings
@@ -281,7 +284,7 @@ std::string_view xerr::getMessageFromString(const char* pMessage) noexcept
     if (pMessage == nullptr) return {};
 
     int i = 0;
-    while (pMessage[i] && pMessage[i] != '|') i++;
+    while (pMessage[i] && pMessage[i] != '|') ++i;
 
     return { pMessage, pMessage + i };
 }
@@ -292,6 +295,34 @@ inline
 std::string_view xerr::getMessage(void) const noexcept
 {
     return getMessageFromString(m_pMessage);
+}
+
+//------------------------------------------------------------------------------------
+inline
+std::string_view xerr::getMessageFromMsg(std::string_view msg) noexcept
+{
+    if (msg.empty()) return {};
+
+    std::size_t i   = 0;
+    const auto  end = msg.length();
+    while ( i < end && msg[i] != '|') ++i;
+
+    return { msg.begin(), msg.begin() + i};
+}
+
+//------------------------------------------------------------------------------------
+inline
+std::string_view xerr::getHintFromMsg(std::string_view msg) noexcept
+{
+    if (msg.empty()) return {};
+
+    std::size_t iStart  = 0;
+    const auto  end     = msg.length();
+    while (iStart < end && msg[iStart] != '|') ++iStart;
+
+    if (msg[iStart] != '|') return {};
+
+    return { msg.begin() + iStart, msg.end()};
 }
 
 //------------------------------------------------------------------------------------
@@ -365,18 +396,18 @@ T_STATE_ENUM xerr::getState(void) const noexcept requires (std::is_enum_v<T_STAT
 //------------------------------------------------------------------------------------
 
 template <auto T_STATE_V, xerr_details::string_literal T_STR_V>  constexpr
- xerr xerr::create(void) noexcept requires (std::is_enum_v<decltype(T_STATE_V)>)
+ xerr xerr::create(const std::source_location loc) noexcept requires (std::is_enum_v<decltype(T_STATE_V)>)
 {
     static_assert(sizeof(T_STATE_V) == 1);
     if (xerr_details::g_iCurChain != -1) m_ChainPool.Free(xerr_details::g_iCurChain, xerr_details::g_iCurTail);
-    if (m_pCallback) m_pCallback(xerr_details::value_type_name_v<T_STATE_V>.data(), static_cast<std::uint8_t>(T_STATE_V), T_STR_V.m_Value.data());
+    if (m_pCallback) m_pCallback(xerr_details::value_type_name_v<T_STATE_V>.data(), static_cast<std::uint8_t>(T_STATE_V), T_STR_V.m_Value.data(), loc.line(), loc.file_name());
     return { xerr_details::data_v<T_STR_V, T_STATE_V>.m_Message };
 }
 
 //------------------------------------------------------------------------------------
 
 template <auto T_STATE_V, xerr_details::string_literal T_STR_V> constexpr
- xerr xerr::create(const xerr PrevError) noexcept requires (std::is_enum_v<decltype(T_STATE_V)>) 
+ xerr xerr::create(const xerr PrevError, const std::source_location loc) noexcept requires (std::is_enum_v<decltype(T_STATE_V)>)
 {
     static_assert(sizeof(T_STATE_V) == 1);
 
@@ -392,31 +423,39 @@ template <auto T_STATE_V, xerr_details::string_literal T_STR_V> constexpr
 
     auto Err = create<T_STATE_V, T_STR_V>();
     xerr_details::CreateEntry().m_pError = Err.m_pMessage;
-    if (m_pCallback) m_pCallback(xerr_details::value_type_name_v<T_STATE_V>.data(), static_cast<std::uint8_t>(T_STATE_V), T_STR_V.m_Value.data());
+    if (m_pCallback) m_pCallback(xerr_details::value_type_name_v<T_STATE_V>.data(), static_cast<std::uint8_t>(T_STATE_V), T_STR_V.m_Value.data(), loc.line(), loc.file_name());
     return Err;
 }
 
 //------------------------------------------------------------------------------------
 
 template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V> constexpr
-xerr xerr::create_f(void) noexcept requires (std::is_enum_v<T_STATE_ENUM>)
+xerr xerr::create_f(const std::source_location loc) noexcept requires (std::is_enum_v<T_STATE_ENUM>)
 {
-    return create<T_STATE_ENUM::FAILURE, T_STR_V>();
+    return create<T_STATE_ENUM::FAILURE, T_STR_V>(loc);
 }
 
 //------------------------------------------------------------------------------------
 
 template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V> constexpr
-xerr xerr::create_f(const xerr PrevError) noexcept requires (std::is_enum_v<T_STATE_ENUM>)
+xerr xerr::create_f(const xerr PrevError, const std::source_location loc) noexcept requires (std::is_enum_v<T_STATE_ENUM>)
 {
-    return create<T_STATE_ENUM::FAILURE, T_STR_V>(PrevError);
+    return create<T_STATE_ENUM::FAILURE, T_STR_V>(PrevError, loc);
 }
 
 //------------------------------------------------------------------------------------
 
 template <auto T_STATE_V> constexpr
-void xerr::LogMessage(std::string_view Message) noexcept requires (std::is_enum_v<decltype(T_STATE_V)>)
+void xerr::LogMessage(std::string_view Message, const std::source_location loc ) noexcept requires (std::is_enum_v<decltype(T_STATE_V)>)
 {
-    if (m_pCallback) m_pCallback(xerr_details::value_type_name_v<T_STATE_V>.data(), static_cast<std::uint8_t>(T_STATE_V), Message );
+    if (m_pCallback) m_pCallback(xerr_details::value_type_name_v<T_STATE_V>.data(), static_cast<std::uint8_t>(T_STATE_V), Message, loc.line(), loc.file_name());
+}
+
+//------------------------------------------------------------------------------------
+
+template <auto T_STATE_V> constexpr
+void xerr::LogMessage(std::string&& Message, const std::source_location loc ) noexcept requires (std::is_enum_v<decltype(T_STATE_V)>)
+{
+    if (m_pCallback) m_pCallback(xerr_details::value_type_name_v<T_STATE_V>.data(), static_cast<std::uint8_t>(T_STATE_V), Message, loc.line(), loc.file_name() );
 }
 

@@ -55,8 +55,14 @@ xerr process_file(const char* path) {
 ## Debugging
 Set a callback to log errors:
 ```cpp
-void log_error(const char* func, std::uint8_t state, const char* msg) {
-    printf("Error in %s: state=%u, msg=%s, hint=%s\n", func, state, msg, xerr{msg}.getHint().data());
+void log_error(const char* func, std::uint8_t state, const char* msg, std::uint32_t line, std::string_view file ) {
+    std::cout << "Error in  = " << func
+              << "\n state  = " << state
+              << "\n msg    = " << xerr{msg}.getMessage()
+              << "\n hint   = " << xerr{msg}.getHint()
+              << "\n source = " << file
+              << "\n line   = " << line
+              << "\n";
 }
 
 int main() {

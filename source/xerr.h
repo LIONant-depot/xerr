@@ -3,9 +3,9 @@
 #pragma once
 
 #include <array>
-#include <cassert>
 #include <atomic>
 #include <string>
+#include <source_location>
 
 //-----------------------------------------------------------------------------------------
 // XERR DETAILS
@@ -46,7 +46,7 @@ namespace xerr_details
 struct xerr
 {
     // Debugging callback for logging and special handling
-    using fn_error_callback = void(const char* pEnumValue, std::uint8_t State, std::string_view Message);
+    using fn_error_callback = void(const char* pEnumValue, std::uint8_t State, std::string_view Message, std::uint32_t Line, std::string_view file );
 
     // Handy object for cleaning up scopes that have errors
     template< typename T_CALLBACK> struct cleanup
@@ -77,6 +77,8 @@ struct xerr
     constexpr               bool                hasChain                    (void)                              const   noexcept;
     inline                  std::string_view    getMessage                  (void)                              const   noexcept;
     inline                  std::string_view    getHint                     (void)                              const   noexcept;
+    inline static           std::string_view    getMessageFromMsg           (std::string_view msg)                      noexcept;
+    inline static           std::string_view    getHintFromMsg              (std::string_view msg)                      noexcept;
     inline static           std::string_view    getMessageFromString        (const char* pMessage)                      noexcept;
     inline static           std::string_view    getHintFromString           (const char* pMessage)                      noexcept;
     template< typename T_CALLBACK> 
@@ -88,19 +90,22 @@ struct xerr
     constexpr               T_STATE_ENUM        getState                    (void)                              const   noexcept requires (std::is_enum_v<T_STATE_ENUM>);
 
     template <auto T_STATE_V, xerr_details::string_literal T_STR_V>
-    constexpr static        xerr                create                      (void)                                      noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
+    constexpr static        xerr                create                      (const std::source_location loc = std::source_location::current())                          noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
 
     template <auto T_STATE_V, xerr_details::string_literal T_STR_V>
-    constexpr static        xerr                create                      (const xerr PrevError)                      noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
+    constexpr static        xerr                create                      (const xerr PrevError, const std::source_location loc = std::source_location::current())    noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
 
     template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V>
-    constexpr static        xerr                create_f                    (void)                                      noexcept requires (std::is_enum_v<T_STATE_ENUM>);
+    constexpr static        xerr                create_f                    (const std::source_location loc = std::source_location::current())                          noexcept requires (std::is_enum_v<T_STATE_ENUM>);
 
     template <typename T_STATE_ENUM, xerr_details::string_literal T_STR_V>
-    constexpr static        xerr                create_f                    (const xerr PrevError)                      noexcept requires (std::is_enum_v<T_STATE_ENUM>);
+    constexpr static        xerr                create_f                    (const xerr PrevError, const std::source_location loc = std::source_location::current())    noexcept requires (std::is_enum_v<T_STATE_ENUM>);
 
     template <auto T_STATE_V>
-    constexpr static        void                LogMessage                  ( std::string_view Message )                noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
+    constexpr static        void                LogMessage                  ( std::string_view Message, const std::source_location loc = std::source_location::current())noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
+
+    template <auto T_STATE_V>
+    constexpr static        void                LogMessage                  ( std::string&& Message, const std::source_location loc = std::source_location::current() )  noexcept requires (std::is_enum_v<decltype(T_STATE_V)>);
 
     const char*                                 m_pMessage      = nullptr;
 
